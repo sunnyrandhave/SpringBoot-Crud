@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome Home!</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6; /* Light grey background */
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh; /* Full viewport height */
+            box-sizing: border-box; /* Include padding in element's total width and height */
+        }
+
+        .container {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1); /* Soft shadow */
+            padding: 40px;
+            text-align: center;
+            width: 100%;
+            max-width: 600px; /* Max width for content */
+            margin-bottom: 30px; /* More space below content */
+        }
+
+        h1 {
+            color: #2c3e50; /* Dark blue heading */
+            margin-bottom: 20px;
+            font-size: 2.5em;
+        }
+
+        h3 {
+            color: #34495e; /* Slightly lighter dark blue */
+            margin-top: 0;
+            font-size: 1.8em;
+        }
+
+        p {
+            font-size: 1.1em;
+            line-height: 1.6;
+            color: #555;
+            margin: 10px 0;
+        }
+
+        strong {
+            color: #2c3e50;
+        }
+
+        hr {
+            border: none;
+            border-top: 1px solid #eee;
+            margin: 25px 0;
+        }
+
+        .buttons-container {
+            display: flex;
+            flex-wrap: wrap; /* Allow buttons to wrap to next line */
+            justify-content: center;
+            gap: 15px; /* Space between buttons */
+            width: 100%;
+            max-width: 700px; /* Max width for button row */
+        }
+
+        .buttons-container button {
+            background-color: #3498db; /* Blue for general actions */
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.0em;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            flex-grow: 1; /* Allow buttons to grow and fill space */
+            max-width: 180px; /* Max width for individual buttons */
+        }
+
+        .buttons-container button#logout {
+            background-color: #e74c3c; /* Red for logout */
+        }
+
+        .buttons-container button:hover {
+            background-color: #2980b9; /* Darker blue on hover */
+            transform: translateY(-2px); /* Slight lift effect */
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .buttons-container button#logout:hover {
+            background-color: #c0392b; /* Darker red on hover */
+        }
+
+        .buttons-container button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Basic responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                padding: 30px;
+                margin: 15px;
+            }
+            h1 {
+                font-size: 2em;
+            }
+            h3 {
+                font-size: 1.5em;
+            }
+            p {
+                font-size: 1em;
+            }
+            .buttons-container {
+                flex-direction: column; /* Stack buttons vertically on small screens */
+                gap: 10px;
+            }
+            .buttons-container button {
+                max-width: 100%; /* Full width for buttons on small screens */
+            }
+        }
+
+        /* Modal Specific Styles - Reused for both create and update */
+        .modal {
+            display: none; /* KEY FIX: Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0, 0, 0, 0.6); /* Black w/ opacity */
+            justify-content: center; /* Center horizontally */
+            align-items: center; /* Center vertically */
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto; /* Auto margin for centering */
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            width: 90%; /* Responsive width */
+            max-width: 500px; /* Max width of the modal */
+            animation: fadeIn 0.3s ease-out; /* Simple fade-in animation */
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            transition: color 0.3s ease;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: #333;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .modal-content h2 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            font-size: 2em;
+        }
+
+        .modal-content label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+            text-align: left; /* Align labels to the left */
+        }
+
+        .modal-content input[type="text"],
+        .modal-content input[type="email"],
+        .modal-content input[type="password"],
+        .modal-content input[type="tel"],
+        .modal-content select {
+            width: calc(100% - 20px); /* Adjust for padding */
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1em;
+            box-sizing: border-box; /* Include padding in width */
+        }
+
+        .modal-content input[type="submit"],
+        .modal-content .modal-buttons button {
+            background-color: #2ecc71; /* Green for submit */
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.0em;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin: 0 10px; /* Space between buttons */
+        }
+
+        .modal-content .modal-buttons button.cancel {
+            background-color: #95a5a6; /* Grey for cancel */
+        }
+
+        .modal-content input[type="submit"]:hover,
+        .modal-content .modal-buttons button:hover {
+            background-color: #27ae60; /* Darker green on hover */
+            transform: translateY(-2px);
+        }
+
+        .modal-content .modal-buttons button.cancel:hover {
+            background-color: #7f8c8d; /* Darker grey on hover */
+        }
+
+        .modal-buttons {
+            text-align: center;
+            margin-top: 25px;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 0.9em;
+            margin-top: -10px;
+            margin-bottom: 10px;
+            text-align: left;
+            display: none; /* Hidden by default */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to Your Dashboard!</h1>
+        <h3 id="greet"></h3>
+        <hr>
+        <p><strong>Name:</strong> <span id="name"></span></p>
+        <p><strong>Email:</strong> <span id="email"></span></p>
+        <p><strong>Role:</strong> <span id="role"></span></p>
+        <p><strong>Phone:</strong> <span id="phone"></span></p>
+        <p><strong>Account Created:</strong> <span id="createdAt"></span></p>
+    </div>
+
+    <div class="buttons-container" id="actionButtons">
+        <button id="logout">Logout</button>
+        <button id="createUser">Create User</button>
+        <button id="viewAllUsers">View All Users</button>
+        <button id="updateSelfDetail">Update Self Detail</button>
+        <button id="deleteUser">Delete User</button>
+    </div>
+
+    <div id="createUserModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" data-modal="createUserModal">&times;</span>
+            <h2>Create New User</h2>
+            <form id="createUserForm">
+                <label for="newName">Name:</label>
+                <input type="text" id="newName" name="name" required>
+                <span class="error-message" id="errorName"></span>
+
+                <label for="newEmail">Email:</label>
+                <input type="email" id="newEmail" name="email" required>
+                <span class="error-message" id="errorEmail"></span>
+
+                <label for="newPassword">Password:</label>
+                <input type="password" id="newPassword" name="password" required>
+                <span class="error-message" id="errorPassword"></span>
+
+                <label for="newPhone">Phone:</label>
+                <input type="tel" id="newPhone" name="phone" pattern="[0-9]{10}" placeholder="10-digit number" required>
+                <span class="error-message" id="errorPhone"></span>
+
+                <label for="newRole">Role:</label>
+                <select id="newRole" name="role" required>
+                    <option value="ROLE_USER">ROLE_USER</option>
+                    <option value="ROLE_ADMIN">ROLE_ADMIN</option>
+                </select>
+                <span class="error-message" id="errorRole"></span>
+
+                <div class="modal-buttons">
+                    <button type="submit">Create User</button>
+                    <button type="button" class="cancel" id="cancelCreate">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="updateUserModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" data-modal="updateUserModal">&times;</span>
+            <h2>Update Your Details</h2>
+            <form id="updateUserForm">
+                <label for="updateName">Name:</label>
+                <input type="text" id="updateName" name="name">
+                <span class="error-message" id="updateErrorName"></span>
+
+                <label for="updateEmail">Email:</label>
+                <input type="email" id="updateEmail" name="email">
+                <span class="error-message" id="updateErrorEmail"></span>
+
+                <label for="updatePassword">New Password (leave blank to keep current):</label>
+                <input type="password" id="updatePassword" name="password">
+                <span class="error-message" id="updateErrorPassword"></span>
+
+                <label for="updatePhone">Phone:</label>
+                <input type="tel" id="updatePhone" name="phone" pattern="[0-9]{10}" placeholder="10-digit number">
+                <span class="error-message" id="updateErrorPhone"></span>
+
+                <label for="updateRole">Role:</label>
+                <select id="updateRole" name="role" disabled>
+                    <option value="ROLE_USER">ROLE_USER</option>
+                    <option value="ROLE_ADMIN">ROLE_ADMIN</option>
+                </select>
+                <span class="error-message" id="updateErrorRole"></span>
+
+                <div class="modal-buttons">
+                    <button type="submit">Update Details</button>
+                    <button type="button" class="cancel" id="cancelUpdate">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="deleteUserModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" data-modal="deleteUserModal">&times;</span>
+            <h2>Delete User</h2>
+            <form id="deleteUserForm">
+                <p>Enter the **ID** of the user you wish to delete:</p>
+                <label for="deleteUserId">User ID:</label>
+                <input type="text" id="deleteUserId" name="userId" required>
+                <span class="error-message" id="deleteErrorUserId"></span>
+
+                <div class="modal-buttons">
+                    <button type="submit" style="background-color: #e74c3c;">Delete User</button>
+                    <button type="button" class="cancel" id="cancelDelete">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            let loggedInUser = null; // Store parsed user data here
+
+            const greetElement = document.getElementById("greet");
+            const nameElement = document.getElementById("name");
+            const emailElement = document.getElementById("email");
+            const roleElement = document.getElementById("role");
+            const phoneElement = document.getElementById("phone");
+            const createdAtElement = document.getElementById("createdAt");
+
+            const logoutButton = document.getElementById("logout");
+            const createUserButton = document.getElementById("createUser");
+            const viewAllUsersButton = document.getElementById("viewAllUsers");
+            const updateSelfDetailButton = document.getElementById("updateSelfDetail");
+            const deleteUserButton = document.getElementById("deleteUser");
+            const buttonsContainer = document.getElementById("actionButtons");
+
+            // Create User Modal elements
+            const createUserModal = document.getElementById("createUserModal");
+            const createCloseButton = createUserModal.querySelector(".close-button"); // Renamed
+            const cancelCreateButton = document.getElementById("cancelCreate");
+            const createUserForm = document.getElementById("createUserForm");
+            const newNameInput = document.getElementById("newName");
+            const newEmailInput = document.getElementById("newEmail");
+            const newPasswordInput = document.getElementById("newPassword");
+            const newPhoneInput = document.getElementById("newPhone");
+            const newRoleSelect = document.getElementById("newRole");
+            const errorName = document.getElementById("errorName");
+            const errorEmail = document.getElementById("errorEmail");
+            const errorPassword = document.getElementById("errorPassword");
+            const errorPhone = document.getElementById("errorPhone");
+
+            // Update User Modal elements
+            const updateUserModal = document.getElementById("updateUserModal");
+            const updateCloseButton = updateUserModal.querySelector(".close-button"); // New
+            const cancelUpdateButton = document.getElementById("cancelUpdate"); // New
+            const updateUserForm = document.getElementById("updateUserForm"); // New
+            const updateNameInput = document.getElementById("updateName"); // New
+            const updateEmailInput = document.getElementById("updateEmail"); // New
+            const updatePasswordInput = document.getElementById("updatePassword"); // New
+            const updatePhoneInput = document.getElementById("updatePhone"); // New
+            const updateRoleSelect = document.getElementById("updateRole"); // New
+            const updateErrorName = document.getElementById("updateErrorName"); // New
+            const updateErrorEmail = document.getElementById("updateErrorEmail"); // New
+            const updateErrorPassword = document.getElementById("updateErrorPassword"); // New
+            const updateErrorPhone = document.getElementById("updateErrorPhone"); // New
+            const updateErrorRole = document.getElementById("updateErrorRole"); // New
+
+            // Delete User Modal elements (New)
+            const deleteUserModal = document.getElementById("deleteUserModal");
+            const deleteCloseButton = deleteUserModal.querySelector(".close-button");
+            const cancelDeleteButton = document.getElementById("cancelDelete");
+            const deleteUserForm = document.getElementById("deleteUserForm");
+            const deleteUserIdInput = document.getElementById("deleteUserId");
+            const deleteErrorUserId = document.getElementById("deleteErrorUserId");
+
+
+            // Helper function to clear all error messages for a given form context
+            function clearErrorMessages(context = 'create') {
+                if (context === 'create') {
+                    errorName.style.display = 'none';
+                    errorEmail.style.display = 'none';
+                    errorPassword.style.display = 'none';
+                    errorPhone.style.display = 'none';
+                } else if (context === 'update') {
+                    updateErrorName.style.display = 'none';
+                    updateErrorEmail.style.display = 'none';
+                    updateErrorPassword.style.display = 'none';
+                    updateErrorPhone.style.display = 'none';
+                    updateErrorRole.style.display = 'none';
+                } else if (context === 'delete') { // New delete context
+                    deleteErrorUserId.style.display = 'none';
+                }
+            }
+
+            // Function to load/refresh user details from local storage and update UI
+            function loadUserDetails() {
+                const userString = localStorage.getItem("user");
+                if (userString) {
+                    loggedInUser = JSON.parse(userString);
+
+                    greetElement.innerText = `Hello, ${loggedInUser.name}!`;
+                    nameElement.innerText = loggedInUser.name;
+                    emailElement.innerText = loggedInUser.email;
+                    roleElement.innerText = loggedInUser.role;
+                    phoneElement.innerText = loggedInUser.phone;
+
+                    if (loggedInUser.createdAt) {
+                        try {
+                            const date = new Date(loggedInUser.createdAt);
+                            createdAtElement.innerText = date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+                        } catch (e) {
+                            createdAtElement.innerText = loggedInUser.createdAt;
+                        }
+                    } else {
+                        createdAtElement.innerText = 'N/A';
+                    }
+
+                    // --- Role-based button visibility ---
+                    createUserButton.style.display = 'none';
+                    viewAllUsersButton.style.display = 'none';
+                    deleteUserButton.style.display = 'none';
+
+                    if (loggedInUser.role === 'ROLE_ADMIN') {
+                        createUserButton.style.display = 'inline-block';
+                        viewAllUsersButton.style.display = 'inline-block';
+                        deleteUserButton.style.display = 'inline-block';
+                    }
+                    // Ensure updateSelfDetail button is always visible for logged-in users
+                    updateSelfDetailButton.style.display = 'inline-block';
+
+                } else {
+                    loggedInUser = null; // Clear user data if not found
+                    greetElement.innerText = `Welcome, Guest! Please log in.`;
+                    document.querySelector('.container').style.display = 'none';
+                    buttonsContainer.style.display = 'none';
+                }
+            }
+
+            // Initial load of user details
+            loadUserDetails();
+
+            // --- Event Listeners for main action buttons ---
+            logoutButton.addEventListener("click", (eve) => {
+                eve.preventDefault();
+                localStorage.removeItem("user");
+                greetElement.innerText = "Logging out...";
+                setTimeout(() => {
+                    window.location.href = "/";
+                }, 1000);
+            });
+
+            createUserButton.addEventListener("click", () => {
+                createUserModal.style.display = "flex"; // Show the modal
+                createUserForm.reset(); // Ensure form is empty
+                clearErrorMessages('create'); // Clear any previous errors
+            });
+
+            viewAllUsersButton.addEventListener("click", () => {
+                window.location.href = "view.html"; // Corrected this line
+            });
+
+            // --- Update Self Detail Button Click ---
+            updateSelfDetailButton.addEventListener("click", () => {
+                if (loggedInUser) {
+                    // Pre-populate the form with current user data
+                    updateNameInput.value = loggedInUser.name || '';
+                    updateEmailInput.value = loggedInUser.email || '';
+                    updatePhoneInput.value = loggedInUser.phone || '';
+                    // Set role (disabled, but good to reflect current role)
+                    updateRoleSelect.value = loggedInUser.role || 'ROLE_USER';
+
+                    updatePasswordInput.value = ''; // Password field should always be empty for security
+
+                    updateUserModal.style.display = "flex"; // Show the update modal
+                    clearErrorMessages('update'); // Clear any previous update errors
+                } else {
+                    alert("Please log in to update your details.");
+                    window.location.href = "/"; // Redirect to login if not logged in
+                }
+            });
+
+            // --- Delete User Button Click (New) ---
+            deleteUserButton.addEventListener("click", () => {
+                if (loggedInUser && loggedInUser.role === 'ROLE_ADMIN') {
+                    deleteUserModal.style.display = "flex";
+                    deleteUserForm.reset(); // Clear previous input
+                    clearErrorMessages('delete'); // Clear any previous errors
+                } else {
+                    alert("You do not have permission to delete users.");
+                }
+            });
+
+
+            // --- Create User Modal Event Listeners ---
+            createCloseButton.addEventListener("click", () => { // Changed variable name
+                createUserModal.style.display = "none";
+                createUserForm.reset();
+                clearErrorMessages('create');
+            });
+
+            cancelCreateButton.addEventListener("click", () => {
+                createUserModal.style.display = "none";
+                createUserForm.reset();
+                clearErrorMessages('create');
+            });
+
+            // --- Update User Modal Event Listeners ---
+            updateCloseButton.addEventListener("click", () => { // New
+                updateUserModal.style.display = "none";
+                updateUserForm.reset();
+                clearErrorMessages('update');
+            });
+
+            cancelUpdateButton.addEventListener("click", () => { // New
+                updateUserModal.style.display = "none";
+                updateUserForm.reset();
+                clearErrorMessages('update');
+            });
+
+            // --- Delete User Modal Event Listeners (New) ---
+            deleteCloseButton.addEventListener("click", () => {
+                deleteUserModal.style.display = "none";
+                deleteUserForm.reset();
+                clearErrorMessages('delete');
+            });
+
+            cancelDeleteButton.addEventListener("click", () => {
+                deleteUserModal.style.display = "none";
+                deleteUserForm.reset();
+                clearErrorMessages('delete');
+            });
+
+
+            // Handle clicks outside either modal to close it
+            window.addEventListener("click", (event) => {
+                if (event.target == createUserModal) {
+                    createUserModal.style.display = "none";
+                    createUserForm.reset();
+                    clearErrorMessages('create');
+                }
+                if (event.target == updateUserModal) { // New
+                    updateUserModal.style.display = "none";
+                    updateUserForm.reset();
+                    clearErrorMessages('update');
+                }
+                if (event.target == deleteUserModal) { // New
+                    deleteUserModal.style.display = "none";
+                    deleteUserForm.reset();
+                    clearErrorMessages('delete');
+                }
+            });
+
+            // --- Create User Form Submission ---
+            createUserForm.addEventListener("submit", async (event) => {
+                event.preventDefault();
+
+                // Client-side validation for Create User Form
+                let isValid = true;
+                clearErrorMessages('create'); // Clear previous errors
+
+                if (newNameInput.value.trim() === '') {
+                    errorName.textContent = 'Name is required.';
+                    errorName.style.display = 'block';
+                    isValid = false;
+                }
+                if (newEmailInput.value.trim() === '' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmailInput.value)) {
+                    errorEmail.textContent = 'Valid email is required.';
+                    errorEmail.style.display = 'block';
+                    isValid = false;
+                }
+                if (newPasswordInput.value.trim() === '') {
+                    errorPassword.textContent = 'Password is required.';
+                    errorPassword.style.display = 'block';
+                    isValid = false;
+                } else if (newPasswordInput.value.trim().length < 6) {
+                    errorPassword.textContent = 'Password must be at least 6 characters long.';
+                    errorPassword.style.display = 'block';
+                    isValid = false;
+                }
+                if (newPhoneInput.value.trim() === '' || !/^[0-9]{10}$/.test(newPhoneInput.value)) {
+                    errorPhone.textContent = 'Phone number must be 10 digits.';
+                    errorPhone.style.display = 'block';
+                    isValid = false;
+                }
+
+                if (!isValid) {
+                    return; // Stop submission if validation fails
+                }
+
+                const newUser = {
+                    name: newNameInput.value,
+                    email: newEmailInput.value,
+                    password: newPasswordInput.value,
+                    phone: newPhoneInput.value,
+                    role: newRoleSelect.value
+                };
+
+                console.log("Submitting new user:", newUser);
+
+                try {
+                    const response = await fetch('/register', { // Your Spring Boot /register endpoint
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            // Add Authorization header if needed, e.g., Bearer token
+                            // 'Authorization': `Bearer ${loggedInUser.token}` // If you have a token
+                        },
+                        body: JSON.stringify(newUser)
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        alert(data.message || 'User created successfully!');
+                        createUserModal.style.display = "none";
+                        createUserForm.reset();
+                        clearErrorMessages('create');
+                        // No need to refresh main page user data for create, as it's a new user
+                    } else {
+                        alert(`Error creating user: ${data.message || 'Unknown error'}`);
+                        console.error('Server error:', data);
+                    }
+                } catch (error) {
+                    console.error('Network or fetch error:', error);
+                    alert('Failed to connect to the server. Please try again.');
+                }
+            });
+
+            // --- Update User Form Submission ---
+            updateUserForm.addEventListener("submit", async (event) => {
+                event.preventDefault();
+
+                if (!loggedInUser || !loggedInUser.id) {
+                    alert("User not logged in or ID missing. Cannot update.");
+                    return;
+                }
+
+                let isValid = true;
+                clearErrorMessages('update'); // Clear previous errors for update form
+
+                const updatedData = {}; // Only send fields that are present/changed
+
+                // Name validation (required, if changed)
+                if (updateNameInput.value.trim() === '') {
+                    updateErrorName.textContent = 'Name cannot be blank.';
+                    updateErrorName.style.display = 'block';
+                    isValid = false;
+                } else if (updateNameInput.value.trim() !== loggedInUser.name) {
+                    updatedData.name = updateNameInput.value.trim();
+                }
+
+                // Email validation (required, valid format, if changed)
+                if (updateEmailInput.value.trim() === '') {
+                    updateErrorEmail.textContent = 'Email cannot be blank.';
+                    updateErrorEmail.style.display = 'block';
+                    isValid = false;
+                } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(updateEmailInput.value)) {
+                    updateErrorEmail.textContent = 'Enter a valid email address.';
+                    updateErrorEmail.style.display = 'block';
+                    isValid = false;
+                } else if (updateEmailInput.value.trim() !== loggedInUser.email) {
+                    updatedData.email = updateEmailInput.value.trim();
+                }
+
+                // Password validation (optional, but if entered, must meet length)
+                if (updatePasswordInput.value.trim() !== '') {
+                    if (updatePasswordInput.value.trim().length < 6) {
+                        updateErrorPassword.textContent = 'New password must be at least 6 characters.';
+                        updateErrorPassword.style.display = 'block';
+                        isValid = false;
+                    } else {
+                        updatedData.password = updatePasswordInput.value.trim();
+                    }
+                }
+
+                // Phone validation (optional, but if entered, must be 10 digits)
+                if (updatePhoneInput.value.trim() !== '') {
+                    if (!/^[0-9]{10}$/.test(updatePhoneInput.value)) {
+                        updateErrorPhone.textContent = 'Phone number must be 10 digits.';
+                        updateErrorPhone.style.display = 'block';
+                        isValid = false;
+                    } else if (updatePhoneInput.value.trim() !== loggedInUser.phone) {
+                        updatedData.phone = updatePhoneInput.value.trim();
+                    }
+                }
+
+                if (!isValid) {
+                    return; // Stop submission if client-side validation fails
+                }
+
+                // Check if any fields were actually updated before sending request
+                if (Object.keys(updatedData).length === 0) {
+                    alert("No changes detected.");
+                    updateUserModal.style.display = "none";
+                    updateUserForm.reset();
+                    clearErrorMessages('update');
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/update-user/${loggedInUser.id}`, { // Your Spring Boot /update-user/{id} endpoint
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            // 'Authorization': `Bearer ${loggedInUser.token}` // If you have a token
+                        },
+                        body: JSON.stringify(updatedData) // Send only updated fields
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        alert(data.message || 'Details updated successfully!');
+                        updateUserModal.style.display = "none";
+                        updateUserForm.reset();
+                        clearErrorMessages('update');
+
+                        // IMPORTANT: Update localStorage with the new user data
+                        // The 'user' object in the response should be the updated DTO
+                        localStorage.setItem("user", JSON.stringify(data.user));
+
+                        // Refresh the UI with the newly updated data
+                        loadUserDetails();
+
+                    } else {
+                        // Handle server-side errors (e.g., email already exists, invalid ID)
+                        alert(`Error updating details: ${data.error || data.message || 'Unknown error'}`);
+                        console.error('Server error:', data);
+                    }
+                } catch (error) {
+                    console.error('Network or fetch error during update:', error);
+                    alert('Failed to connect to the server for update. Please try again.');
+                }
+            });
+
+            // --- Delete User Form Submission (New) ---
+            deleteUserForm.addEventListener("submit", async (event) => {
+                event.preventDefault();
+
+                let isValid = true;
+                clearErrorMessages('delete');
+
+                const userIdToDelete = deleteUserIdInput.value.trim();
+
+                if (userIdToDelete === '') {
+                    deleteErrorUserId.textContent = 'User ID is required.';
+                    deleteErrorUserId.style.display = 'block';
+                    isValid = false;
+                } else if (isNaN(userIdToDelete)) {
+                    deleteErrorUserId.textContent = 'User ID must be a number.';
+                    deleteErrorUserId.style.display = 'block';
+                    isValid = false;
+                }
+
+                if (!isValid) {
+                    return;
+                }
+
+                // Confirmation before sending delete request
+                if (!confirm(`Are you sure you want to delete user with ID: ${userIdToDelete}? This action cannot be undone.`)) {
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/delete-user/${userIdToDelete}`, { // Your Spring Boot /delete-user/{id} endpoint
+                        method: 'DELETE',
+                        headers: {
+                            // Add Authorization header if needed, e.g., Bearer token
+                            // 'Authorization': `Bearer ${loggedInUser.token}` // If you have a token
+                        },
+                    });
+
+                    // Check for a successful deletion response. A 204 No Content is common for DELETE.
+                    // If your backend returns JSON for success/failure, adjust accordingly.
+                    if (response.ok || response.status === 204) {
+                        alert(`User with ID ${userIdToDelete} deleted successfully!`);
+                        deleteUserModal.style.display = "none";
+                        deleteUserForm.reset();
+                        clearErrorMessages('delete');
+                        // Optional: Refresh user list if you have a display for all users on this page
+                        // or if the deleted user was the currently logged-in user, redirect to login.
+                        if (loggedInUser && loggedInUser.id == userIdToDelete) {
+                            localStorage.removeItem("user");
+                            alert("Your account has been deleted. You will be logged out.");
+                            window.location.href = "/";
+                        }
+                    } else {
+                        const data = await response.json();
+                        alert(`Error deleting user: ${data.message || 'Unknown error'}`);
+                        console.error('Server error during deletion:', data);
+                    }
+                } catch (error) {
+                    console.error('Network or fetch error during delete:', error);
+                    alert('Failed to connect to the server for deletion. Please try again.');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

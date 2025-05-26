@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Users</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Apply Inter font to the entire body */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom modal styles for error messages */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 0.75rem; /* rounded-lg */
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1); /* shadow-xl */
+            text-align: center;
+            max-width: 90%;
+            width: 400px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center py-8 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-4xl w-full bg-white p-6 sm:p-8 rounded-xl shadow-xl">
+        <div class="flex flex-col sm:flex-row justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold text-gray-800 mb-4 sm:mb-0">View All Users</h1>
+            <div class="flex items-center space-x-4">
+                <p class="text-gray-600 text-lg">Hello, <span id="viewerName" class="font-semibold text-blue-600">Current User</span>!</p>
+                <button id="homeButton" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                    Go to Home
+                </button>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto rounded-lg shadow-md border border-gray-200">
+            <table id="userTable" class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider rounded-tl-lg">ID</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider rounded-tr-lg">Last Login</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    </tbody>
+            </table>
+        </div>
+
+        <div id="messageModal" class="modal-overlay hidden">
+            <div class="modal-content">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4" id="modalTitle"></h3>
+                <p class="text-gray-700 mb-6" id="modalMessage"></p>
+                <button id="modalCloseButton" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out">
+                    OK
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Function to show the custom modal
+        function showModal(title, message) {
+            const modal = document.getElementById('messageModal');
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalMessage').textContent = message;
+            modal.classList.remove('hidden');
+        }
+
+        // Function to hide the custom modal
+        function hideModal() {
+            const modal = document.getElementById('messageModal');
+            modal.classList.add('hidden');
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const viewerNameSpan = document.getElementById('viewerName');
+            let user = localStorage.getItem("user"); // Key to store username
+            user = JSON.parse(user);
+            if (user) {
+                viewerNameSpan.innerText = user.name;
+            } else {
+                viewerNameSpan.textContent = "Guest"; // Default if no username is found
+            }
+
+            // Event listener for the Home button
+            document.getElementById("homeButton").addEventListener("click", function() {
+                window.location.href = "home.html"; // Redirect to home.html
+            });
+
+            // Event listener for the modal close button
+            document.getElementById('modalCloseButton').addEventListener('click', hideModal);
+
+            fetch("http://localhost:9090/getAllUsers")
+                .then(response => {
+                    if (!response.ok) {
+                        // If response is not OK (e.g., 404 or 500), throw an error
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const users = data.users;
+                    const tableBody = document.querySelector("#userTable tbody");
+
+                    // Clear existing rows (if any)
+                    tableBody.innerHTML = '';
+
+                    if (users && users.length > 0) {
+                        users.forEach(user => {
+                            const row = document.createElement("tr");
+                            row.classList.add('hover:bg-gray-50'); // Add hover effect to rows
+
+                            row.innerHTML = `
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${user.id}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${user.name}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${user.email}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${user.phone}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${user.role}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${user.createdAt ?? "-"}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${user.lastLogin ?? "-"}</td>
+                            `;
+                            tableBody.appendChild(row);
+                        });
+                    } else {
+                        // Display a message if no users are found
+                        const noUsersRow = document.createElement("tr");
+                        noUsersRow.innerHTML = `<td colspan="7" class="px-6 py-4 text-center text-sm text-gray-500">No users found.</td>`;
+                        tableBody.appendChild(noUsersRow);
+                    }
+                })
+                .catch(error => {
+                    console.error("Error fetching users:", error);
+                    showModal("Error", "Failed to load users. Please try again later.");
+                });
+        });
+    </script>
+</body>
+</html>
