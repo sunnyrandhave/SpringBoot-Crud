@@ -63,7 +63,6 @@ public class UserService {
                 .stream()
                 .map(UserDTO::new)
                 .toList();
-
         return userDTOList;
     }
 
